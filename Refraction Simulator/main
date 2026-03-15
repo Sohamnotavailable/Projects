@@ -1,0 +1,64 @@
+import pygame
+import sys
+import math
+
+
+pygame.init()
+height=700
+width=900
+screen=pygame.display.set_mode((width,height))
+pygame.display.set_caption("Refraction Simulation")
+clock = pygame.time.Clock()
+
+med1=(217, 237, 247)
+med2=(113, 169, 247)
+ray=(255, 111, 89)
+interface=(67, 67, 67)
+
+n1=1.00
+n2=1.50
+
+border=height//2
+
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+            
+    screen.fill(med1, (0, 0, width, border))
+    screen.fill(med2, (0, border, width, height))
+    
+    #Ray Logic
+    start_pos=pygame.math.Vector2(width//2, 0)
+    mouse_pos=pygame.math.Vector2(pygame.mouse.get_pos())
+    
+    #Special case to avoid division by zero
+    if mouse_pos.y <= start_pos.y:
+        mouse_pos.y = start_pos.y + 1
+        
+    incident_vector=(mouse_pos - start_pos).normalize()
+    #Using the vector to make ray
+    t = (border - start_pos.y) / incident_vector.y
+    intersection_point = start_pos + t * incident_vector   # y=mx+c
+    
+    #Incident ray
+    pygame.draw.line(screen, ray, start_pos, intersection_point, 3)
+    
+    #Normal Vector
+    normal = pygame.math.Vector2(0, -1)
+    
+    n_ratio=n1/n2
+    
+    cos_i = -incident_vector.dot(normal)
+    sin_t2_sq = n_ratio**2 * (1 - cos_i**2)
+    cos_t = math.sqrt(1 - sin_t2_sq)
+    
+    refracted_vec=(n_ratio*incident_vector)+(n_ratio*cos_i-cos_t)*normal
+    
+    end_point = intersection_point+refracted_vec*height
+    pygame.draw.line(screen, ray, intersection_point, end_point, 3)
+    
+    pygame.display.flip()
+    clock.tick(240)
